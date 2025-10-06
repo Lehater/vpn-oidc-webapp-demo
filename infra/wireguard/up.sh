@@ -1,31 +1,35 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Решает: корректный запуск wg0 + включение форвардинга
-if ! command -v wg-quick >/dev/null; then
-  echo "wg-quick not found. Install wireguard." >&2
-  exit 1
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+REPO_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
+
+# Включаем IPv4 forwarding (если ещё не включён)
+sudo sysctl -w net.ipv4.ip_forward=1 >/dev/null
+echo 'net.ipv4.ip_forward=1' | sudo tee /etc/sysctl.d/99-wg-forward.conf >/dev/null || true
+
+# Стартуем wg0, если не запущен
+if ! systemctl is-active --quiet wg-quick@wg0; then
+  sudo systemctl enable --now wg-quick@wg0
 fi
 
-# Включаем IPv4 форвардинг (нужно для маршрутизации при необходимости)
-sudo sysctl -w net.ipv4.ip_forward=1
-echo 'net.ipv4.ip_forward=1' | sudo tee /etc/sysctl.d/99-wg-forward.conf >/dev/null
+# Подхватываем параметры и адрес клиента
+source "${SCRIPT_DIR}/server.env"
+CLIENT1_ADDR="${CLIENT1_ADDRESS}"
 
-# Запускаем wg0
-sudo systemctl enable --now wg-quick@wg0
+# Читаем публичный ключ клиента из корректного места в репозитории
+CLIENT1_PUB="$(cat "${REPO_ROOT}/artifacts/keys/client1.pub")"
 
-# Добавляем первого клиента в сервер (если не добавлен)
-SERVER_PUB=$(sudo cat /etc/wireguard/wg0.conf | grep -E '^PrivateKey' || true)
-if [[ -n "$SERVER_PUB" ]]; then
-  # no-op: сервер уже знает свой ключ
-  :
+# Проверим, существует ли уже такой peer
+if sudo wg show wg0 peers | grep -q "${CLIENT1_PUB}"; then
+  echo "[OK] Peer уже добавлен: ${CLIENT1_PUB}"
+else
+  echo "[..] Добавляю peer клиента: ${CLIENT1_PUB} (AllowedIPs ${CLIENT1_ADDR}/32)"
+  sudo wg set wg0 peer "${CLIENT1_PUB}" allowed-ips "${CLIENT1_ADDR}/32"
+  echo "[OK] Peer добавлен"
 fi
 
-# Добавим Peer клиента явно
-CLIENT1_PUB=$(cat ../../artifacts/keys/client1.pub)
-CLIENT1_ADDR=$(grep '^CLIENT1_ADDRESS=' infra/wireguard/server.env | cut -d= -f2)
-sudo wg set wg0 peer "$CLIENT1_PUB" allowed-ips "${CLIENT1_ADDR}/32" || true
-
-# Показ состояния
+# Показ текущего состояния
+echo
 sudo wg show
 echo "[OK] WireGuard up: wg0"

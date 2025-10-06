@@ -43,10 +43,6 @@ ufw.apply:
 	chmod +x infra/firewall/ufw.sh
 	EXT_IF=eth0 WG_IF=wg0 infra/firewall/ufw.sh
 
-docker-user:
-	chmod +x infra/firewall/docker-user.sh
-	infra/firewall/docker-user.sh
-
 # TLS с SAN
 tls.san:
 	chmod +x infra/nginx/tls/make-san-cert.sh
@@ -60,3 +56,12 @@ check.server:
 check.client:
 	chmod +x scripts/check_client.sh
 	./scripts/check_client.sh
+
+tls.san:
+	mkdir -p infra/nginx/tls
+	openssl req -x509 -nodes -newkey rsa:2048 \
+	  -keyout infra/nginx/tls/app.key \
+	  -out infra/nginx/tls/app.crt \
+	  -days 3650 \
+	  -subj "/CN=app.vpn.local" \
+	  -addext "subjectAltName=DNS:app.vpn.local,DNS:sso.vpn.local"
