@@ -1,0 +1,10 @@
+# Node
+app/node_modules
+app/.env
+# TLS
+infra/nginx/tls/*.key
+infra/nginx/tls/*.crt
+# Artifacts
+artifacts/
+# Docker
+*.log

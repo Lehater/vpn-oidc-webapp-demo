@@ -1,0 +1,28 @@
+{
+  "realm": "demo",
+  "enabled": true,
+  "clients": [
+    {
+      "clientId": "web-app",
+      "name": "Demo Web App",
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "secret": "changeme",
+      "redirectUris": ["https://app.vpn.local/oidc/callback"],
+      "webOrigins": ["https://app.vpn.local"],
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false
+    }
+  ],
+  "users": [
+    {
+      "username": "test1",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "test1@example.local",
+      "credentials": [{ "type": "password", "value": "Passw0rd!", "temporary": false }]
+    }
+  ]
+}

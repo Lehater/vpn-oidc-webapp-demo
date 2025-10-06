@@ -1,0 +1,22 @@
+[ req ]
+default_bits       = 2048
+distinguished_name = req_distinguished_name
+x509_extensions    = v3_req
+prompt             = no
+
+[ req_distinguished_name ]
+C  = XX
+ST = Local
+L  = Local
+O  = Demo
+OU = VPN
+CN = app.vpn.local
+
+[ v3_req ]
+keyUsage         = critical, digitalSignature, keyEncipherment
+extendedKeyUsage = serverAuth
+subjectAltName   = @alt_names
+
+[ alt_names ]
+DNS.1 = app.vpn.local
+DNS.2 = sso.vpn.local
