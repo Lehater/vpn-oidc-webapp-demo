@@ -10,33 +10,30 @@
 - На клиенте `/etc/hosts`:
 10.6.0.1 app.vpn.local sso.vpn.local
 
-perl
-Copy code
 
 ### 1) TLS (SAN на app/sso)
 ```bash
 make tls.san
+```
 2) Правила DOCKER-USER (страховка против обхода UFW)
-bash
-Copy code
+
+```
 make docker-user
+```
 3) Запуск стека
-bash
-Copy code
-export OIDC_CLIENT_SECRET=changeme
+
+```export OIDC_CLIENT_SECRET=changeme
 export SESSION_SECRET=please_change_me
 docker compose up -d --build
+```
 4) Проверка периметра
 На сервере:
 
-bash
-Copy code
-make check.server
+```make check.server```
 На клиенте:
 
-bash
-Copy code
-make check.client
+```make check.client```
+
 5) Тест логина
 Откройте https://app.vpn.local/ → Profile → редирект в Keycloak.
 
@@ -49,22 +46,11 @@ App/Keycloak не публикуются наружу.
 
 Для продакшна замените самоподписанный cert и секреты. Добавьте MFA/RBAC в Keycloak.
 
-yaml
-Copy code
 
 ---
 
-# 5) (Опционально) nftables вместо iptables
+(Опционально) nftables вместо iptables
 
-Если у вас `nft` по умолчанию: добавьте эквивалент `DOCKER-USER`. Для краткости — оставлю как заметку (реализация зависит от вашей политики). Главное — **сохранить смысл**: пропускать во внутренние docker-цепочки только трафик, пришедший с `wg0`.
+Если у вас `nft` по умолчанию: добавьте эквивалент `DOCKER-USER`. Главное — **сохранить смысл**: пропускать во внутренние docker-цепочки только трафик, пришедший с `wg0`.
 
 ---
-
-## Итог
-
-- Сертификат c SAN для обоих доменов — готов.  
-- Smoke-скрипты server/client — готовы.  
-- Makefile обновлён.  
-- README с быстрым стартом — добавлен.
-
-Если нужно — добавлю **скелет Ansible-ролей** (wg, ufw, docker-compose, keycloak-realm) для идемпотентного развёртывания и/или **Pandoc-скрипт** сборки PDF-отчёта из `docs/report/report.md`.
